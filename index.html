@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Panel Belawxit</title>
+<style>
+body{
+margin:0;
+background:#020617;
+font-family:-apple-system,BlinkMacSystemFont,Segoe UI;
+color:white;
+overflow:hidden;
+}
+
+.login{
+position:fixed;
+inset:0;
+display:flex;
+align-items:center;
+justify-content:center;
+background:#000;
+flex-direction:column;
+gap:10px;
+}
+
+.login input{
+padding:12px;
+border-radius:10px;
+border:none;
+width:240px;
+background:#0b1220;
+color:white;
+}
+
+.login button{
+padding:12px 20px;
+border:none;
+border-radius:10px;
+background:linear-gradient(90deg,#00eaff,#00ffa6);
+}
+
+.container{
+position:absolute;
+top:10px;
+left:50%;
+transform:translateX(-50%);
+width:96%;
+max-width:520px;
+background:#061022;
+border-radius:22px;
+padding:16px;
+box-shadow:0 0 60px #00eaff44;
+cursor:grab;
+display:none;
+}
+
+.section{
+margin-top:10px;
+background:#0b1220;
+padding:12px;
+border-radius:16px;
+box-shadow:0 0 18px #00eaff22 inset;
+}
+
+.item{
+display:flex;
+justify-content:space-between;
+padding:10px;
+background:#ffffff08;
+border-radius:10px;
+margin-top:6px;
+}
+
+.switch{
+width:44px;height:22px;background:#333;border-radius:20px;position:relative;
+}
+.switch::before{
+content:"";position:absolute;width:18px;height:18px;background:white;border-radius:50%;top:2px;left:2px;transition:.3s;
+}
+.switch.active{background:#00ffa6;}
+.switch.active::before{left:24px;}
+
+button{
+width:100%;
+padding:12px;
+margin-top:8px;
+border:none;
+border-radius:12px;
+background:linear-gradient(90deg,#00eaff,#00ffa6);
+}
+
+.terminal{
+position:fixed;
+inset:0;
+background:black;
+color:#00ff9c;
+font-family:monospace;
+padding:20px;
+display:none;
+white-space:pre-line;
+}
+
+.monitor{
+font-size:12px;
+opacity:.8;
+margin-top:6px;
+}
+
+.particle{
+position:absolute;
+width:2px;height:2px;
+background:#00eaff;
+border-radius:50%;
+animation:float 8s linear infinite;
+}
+@keyframes float{
+from{transform:translateY(100vh);}
+to{transform:translateY(-10vh);}
+}
+
+#launchOverlay{
+position:fixed;
+inset:0;
+background:black;
+display:none;
+align-items:center;
+justify-content:center;
+flex-direction:column;
+z-index:9999;
+color:#00ffa6;
+font-family:monospace;
+font-size:18px;
+}
+#launchBarWrap{
+width:240px;
+height:6px;
+background:#111;
+border-radius:10px;
+margin-top:12px;
+overflow:hidden;
+}
+#launchBar{
+height:100%;
+width:0%;
+background:#00ffa6;
+}
+</style>
+</head>
+<body>
+
+<div class="login" id="login">
+<h2>Acceso Panel Belawxit</h2>
+<input placeholder="Nombre" id="name">
+<input placeholder="Usuario">
+<input placeholder="Contraseña" type="password">
+<button onclick="enter()">Entrar</button>
+</div>
+
+<div class="terminal" id="terminal"></div>
+
+<div class="container" id="panel">
+<h2>PANEL Belawxit</h2>
+<div class="monitor" id="monitor">Estado sistema: seguro</div>
+
+<div class="section">
+<h3>🎯 Aimbot</h3>
+<div class="item"><span>Aimbot</span><div class="switch" onclick="toggle(this,'Aimbot')"></div></div>
+<div class="item"><span>Fijar Cabeza</span><div class="switch" onclick="toggle(this,'Fijar Cabeza')"></div></div>
+<div class="item"><span>Headtrick</span><div class="switch" onclick="toggle(this,'Headtrick')"></div></div>
+</div>
+
+<div class="section">
+<h3>🔫 Armas</h3>
+<div class="item"><span>No Recoil</span><div class="switch" onclick="toggle(this,'No Recoil')"></div></div>
+<div class="item"><span>Precisión</span><div class="switch" onclick="toggle(this,'Precisión')"></div></div>
+<div class="item"><span>Control Retroceso</span><div class="switch" onclick="toggle(this,'Control Retroceso')"></div></div>
+</div>
+
+<div class="section">
+<h3>🚀 Rendimiento</h3>
+<div class="item"><span>120 FPS</span><div class="switch" onclick="toggle(this,'120 FPS')"></div></div>
+<div class="item"><span>Optimización</span><div class="switch" onclick="toggle(this,'Optimización')"></div></div>
+<div class="item"><span>Sensibilidad</span><div class="switch" onclick="toggle(this,'Sensibilidad')"></div></div>
+</div>
+
+<div class="section">
+<h3>🎮 Launcher</h3>
+<button onclick="abrirFF()">Abrir Free Fire</button>
+<button onclick="abrirFFMAX()">Abrir Free Fire MAX</button>
+</div>
+</div>
+
+<div id="launchOverlay">
+<div>Iniciando juego...</div>
+<div id="launchBarWrap"><div id="launchBar"></div></div>
+</div>
+
+<script>
+
+let voice;
+function loadVoices(){
+let v=speechSynthesis.getVoices();
+voice=v.find(x=>x.lang.startsWith("es"))||v[0];
+}
+speechSynthesis.onvoiceschanged=loadVoices;
+loadVoices();
+
+function speak(t){
+let u=new SpeechSynthesisUtterance(t);
+u.voice=voice;
+u.lang="es-ES";
+speechSynthesis.cancel();
+speechSynthesis.speak(u);
+}
+
+function typeTerminal(text,cb){
+terminal.style.display="block";
+let i=0;
+let interval=setInterval(()=>{
+terminal.textContent+=text[i];
+i++;
+if(i>=text.length){
+clearInterval(interval);
+setTimeout(()=>{
+terminal.style.display="none";
+terminal.textContent="";
+cb();
+},800);
+}
+},20);
+}
+
+function enter(){
+login.style.display="none";
+typeTerminal(`Inicializando sistema...
+Verificando memoria...
+Estado: OK`,()=>{
+panel.style.display="block";
+let n=document.getElementById("name").value||"usuario";
+speak("Bienvenido a panel Belawxit");
+setTimeout(()=>speak(n),1000);
+});
+}
+
+function toggle(el,name){
+el.classList.toggle("active");
+navigator.vibrate?.(30);
+if(el.classList.contains("active")){
+speak(name);
+}else{
+speak(name+" desactivado");
+}
+}
+
+function showLaunch(){
+launchOverlay.style.display="flex";
+launchBar.style.width="0%";
+let w=0;
+let i=setInterval(()=>{
+w+=5;
+launchBar.style.width=w+"%";
+if(w>=100) clearInterval(i);
+},100);
+}
+
+function hideLaunch(){
+launchOverlay.style.display="none";
+}
+
+/* SOLO ESTO CAMBIADO */
+
+function abrirFF(){
+speak("Abriendo Free Fire");
+showLaunch();
+
+window.location.href="garenaff://";
+
+setTimeout(()=>{
+window.location.href="intent://#Intent;scheme=garenaff;package=com.dts.freefireth;end";
+},500);
+
+setTimeout(()=>hideLaunch(),2000);
+}
+
+function abrirFFMAX(){
+speak("Abriendo Free Fire Max");
+showLaunch();
+
+window.location.href="garenaffmax://";
+
+setTimeout(()=>{
+window.location.href="intent://#Intent;scheme=garenaffmax;package=com.dts.freefiremax;end";
+},500);
+
+setTimeout(()=>hideLaunch(),2000);
+}
+
+setInterval(()=>{
+let states=["seguro","estable","protegido","sin riesgo"];
+monitor.textContent="Estado sistema: "+states[Math.floor(Math.random()*states.length)];
+},3000);
+
+let isDown=false,offsetX;
+panel.addEventListener("mousedown",e=>{
+isDown=true;
+offsetX=e.clientX-panel.offsetLeft;
+});
+document.addEventListener("mouseup",()=>isDown=false);
+document.addEventListener("mousemove",e=>{
+if(!isDown)return;
+panel.style.left=e.clientX-offsetX+"px";
+});
+
+for(let i=0;i<60;i++){
+let p=document.createElement("div");
+p.className="particle";
+p.style.left=Math.random()*100+"%";
+p.style.animationDuration=(4+Math.random()*8)+"s";
+document.body.appendChild(p);
+}
+
+</script>
+</body>
+</html>
